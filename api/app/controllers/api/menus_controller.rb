@@ -1,50 +1,70 @@
-class MenusController < ApplicationController
-  respond_to :json
+class Api::MenusController < ApplicationController
 
   def index
-    @menus = Menuall
-    render json: @menus
+    @menus = Menu.all
+    respond_to do |format|
+      format.json { render json: @menus }
+    end
   end
 
   def show
     @menu = find_menu
-    render json: @menus
-  end
-
-  def create
-    @menu = Menunew(menu_params)
-      if @menu.save
-        render  status: 201
-      else
-        render json: @menu.errors, status: 422
+    respond_to do |format|
+      format.json { render json: @menu }
     end
   end
 
-  def update
-    @menu = find_menu
-    u = @menu.update_attributes(menu_params)
-      if u
-        render json: status: 201
+  def create
+    @menu = Menu.new(menu_params)
+    @meun.item_id = restaurant_id
+    @menu.item = Item.find(params[:item_id])
+    respond_to do |format|
+      if @menu.save
+        format.json { render status: 200, json: @menu }
       else
-        render json: 422
+        format.json { render json: @menu.errors.full_messages, status: 400 }
       end
     end
   end
 
-  def destroy
+  def edit
+    @menu = find_menu
+    respond_to do |format|
+      if @menu.save
+        format.json { render status: created, json: @menu }
+      else
+        format.json { render json: @menu.errors.full_messages, status: 400 }
+      end
+    end
+  end
+
+   def update
+    @menu = find_menu
+    respond_to do |format|
+      if @menu.update_attributes(menu_params)
+        format.json { render status: 200, json: @menu}
+      else
+        format.json { render json: @menu.errors.full_messages, status: unprocessable_entity }
+      end
+    end
+  end
+
+   def destroy
     @menu = find_menu
     @menu.destroy
-    render head: :no_content
+     respond_to do |format|
+      format.json { head :no_content, status: 202 }
     end
   end
 
   private
 
   def find_menu
-    Menufind(params[:id])
+    Menu.find(params[:id])
   end
 
   def menu_params
     params.require(:menu).permit(:restaurant_id, :item_id)
   end
+
 end

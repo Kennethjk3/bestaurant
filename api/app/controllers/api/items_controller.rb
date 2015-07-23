@@ -1,40 +1,57 @@
-class ItemsController < ApplicationController
-  respond_to :json
+class Api::ItemsController < ApplicationController
 
   def index
     @items = Item.all
-    render json: @items
+    respond_to do |format|
+      format.json { render json: @items }
+    end
   end
 
   def show
     @item = find_item
-    render json: @items
-  end
-
-  def create
-    @item = Item.new(item_params)
-      if @item.save
-        render  status: 201
-      else
-        render json: @item.errors, status: 422
+    respond_to do |format|
+      format.json { render json: @item }
     end
   end
 
-  def update
+  def create
+   @item = Item.new(item_params)
+   respond_to do |format|
+     if @item.save
+       format.json { render status: 200, json: @item }
+     else
+       format.json { render json: @item.errors.full_messages, status: 400 }
+     end
+   end
+ end
+
+  def edit
     @item = find_item
-    u = @item.update_attributes(item_params)
-      if u
-        render json: status: 201
+    respond_to do |format|
+      if @item.save
+        format.json { render status: created, json: @item }
       else
-        render json: status: 422
+        format.json { render json: @item.errors.full_messages, status: 400 }
       end
     end
   end
 
-  def destroy
+   def update
+    @item = find_item
+    respond_to do |format|
+      if @item.update_attributes(item_params)
+        format.json { render status: 200, json: @item}
+      else
+        format.json { render json: @item.errors.full_messages, status: unprocessable_entity }
+      end
+    end
+  end
+
+   def destroy
     @item = find_item
     @item.destroy
-    render head: :no_content
+     respond_to do |format|
+      format.json { head :no_content, status: 202 }
     end
   end
 
@@ -47,4 +64,5 @@ class ItemsController < ApplicationController
   def item_params
     params.require(:item).permit(:name, :price, :description, :pic, :category)
   end
+
 end

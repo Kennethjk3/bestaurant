@@ -1,40 +1,57 @@
-class RestaurantsController < ApplicationController
-  respond_to :json
+class Api::RestaurantsController < ApplicationController
 
   def index
     @restaurants = Restaurant.all
-    render json: @restaurants
+    respond_to do |format|
+      format.json { render json: @restaurants }
+    end
   end
 
   def show
     @restaurant = find_restaurant
-    render json: @restaurants
-  end
-
-  def create
-    @restaurant = Restaurant.new(restaurant_params)
-      if @restaurant.save
-        render  status: 201
-      else
-        render json: @restaurant.errors, status: 422
+    respond_to do |format|
+      format.json { render json: @restaurant }
     end
   end
 
-  def update
+  def create
+   @restaurant = Restaurant.new(restaurant_params)
+   respond_to do |format|
+     if @restaurant.save
+       format.json { render status: 200, json: @restaurant }
+     else
+       format.json { render json: @restaurant.errors.full_messages, status: 400 }
+     end
+   end
+ end
+
+  def edit
     @restaurant = find_restaurant
-    u = @restaurant.update_attributes(restaurant_params)
-      if u
-        render json: status: 201
+    respond_to do |format|
+      if @restaurant.save
+        format.json { render status: created, json: @restaurant }
       else
-        render json: status: 422
+        format.json { render json: @restaurant.errors.full_messages, status: 400 }
       end
     end
   end
 
-  def destroy
+   def update
+    @restaurant = find_restaurant
+    respond_to do |format|
+      if @restaurant.update_attributes(restaurant_params)
+        format.json { render status: 200, json: @restaurant}
+      else
+        format.json { render json: @restaurant.errors.full_messages, status: unprocessable_entity }
+      end
+    end
+  end
+
+   def destroy
     @restaurant = find_restaurant
     @restaurant.destroy
-    render head: :no_content
+     respond_to do |format|
+      format.json { head :no_content, status: 202 }
     end
   end
 
@@ -47,4 +64,5 @@ class RestaurantsController < ApplicationController
   def restaurant_params
     params.require(:restaurant).permit(:name, :location, :cuisine)
   end
+
 end
